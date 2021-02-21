@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <queue>
-
+#include <time.h>
 //using namespace std;void search_alg(std::vector<int> prob, int queueing_function);
 /* std::vector<int> move_up(std::vector<int> puzzle, int tile);
 std::vector<int> move_down(std::vector<int> puzzle, int tile);
@@ -15,9 +15,9 @@ class node {
     public:
         std::vector<int> state;
         int weight = 0; //accumulated cost g(n)
-        int heur_placeholder = 0; //for ucs search
-        int misplaced_heur = 0; //heuristic h(n)
-        int manhattan_heur = 0; //heuristic h(n)
+        int heur_placeholder = 0; //for ucs search; given in project manual that ucs has a h(n) of 0
+        int misplaced_heur = 0; //misplaced tile heuristic h(n)
+        int manhattan_heur = 0; //manhattan heuristic h(n)
 
         //basically check if 'tile' is zero and the tile above is within boundary of the puzzle; if so, swap tiles with the tile above
         void move_up(int tile) {
@@ -86,7 +86,7 @@ class node {
         //how far off is the overall puzzle from the ideal state
         void misplaced() {
             std::vector<int> solution = {1,2,3,4,5,6,7,8,0};
-            int off_by = 0; //essentially g(n) - how for off we are from the ideal state; how many more moves are needed to reach solution state
+            int off_by = 0; //essentially h(n) - how for off we are from the ideal state; how many more moves are needed to reach solution state
             for(int i = 0; i < solution.size(); ++i) {
                 if (solution.at(i) != state.at(i)) {
                     //std::cout << solution.at(i) << " vs " << input.at(i) << std::endl;
@@ -96,7 +96,7 @@ class node {
             misplaced_heur = off_by;
         } 
 
-        //find the difference between slides and then add the differences to main
+        //find the difference between the indexes of the same tile in the different vectors and then add the differences to manhattan_heur
         void manhattan() {
             std::vector<int> solution = {1,2,3,4,5,6,7,8,0};
             int i, j;
@@ -124,13 +124,15 @@ class node {
     }
 }; */
 
-struct default_heur { //for ucs, given that in the project prompt h(n) is always 0 in ucs search
+//for ucs, given that in the project prompt h(n) is always 0 in ucs search; uses weight or 'cost' since that's how ucs traverses by definition
+struct default_heur { 
     bool operator()(node n1, node n2) {
         //in this order, the smaller of the two values is given priority or given the top
         return n1.weight > n2.weight;
     }
 };
 
+//struct misplaced_astar and manhattan_astar follow the logic of g(n)+h(n), wehere the smaller of the two sums is given priority in the queue
 struct misplaced_astar {
     bool operator()(node n1, node n2) {
         return (n1.weight + n1.misplaced_heur) > (n2.weight + n2.misplaced_heur);
@@ -145,6 +147,7 @@ struct manhattan_astar {
 
 
 void search_alg(std::vector<int> prob, int queueing_function);
+
 template<typename T>
 std::priority_queue<node, std::vector<node>, T> add_children(std::priority_queue<node, std::vector<node>, T> root);
 
@@ -158,6 +161,8 @@ std::priority_queue<node, std::vector<node>, T> add_children(std::priority_queue
         }
 }; */ 
 
+
+//where the search algorithm is actually implemented, varies based on what overloaded sorting operator is used in each search's priority queue
 void search_algo(node prob, int queueing_function) {
     //pseudo code from slides
     /*function general-search(problem, QUEUEING-FUNCTION)  
@@ -259,6 +264,8 @@ void search_algo(node prob, int queueing_function) {
 }
 
 
+//pushes onto search queue newly-generated 'successors,' based on the queue's overloaded sorting operator, ...
+//... while also calculating their heuristics should they be used
 template<typename T>
 std::priority_queue<node, std::vector<node>, T> add_children(std::priority_queue<node, std::vector<node>, T> root) {
     std::priority_queue<node, std::vector<node>, T> new_tree = root;
@@ -266,6 +273,8 @@ std::priority_queue<node, std::vector<node>, T> add_children(std::priority_queue
     int i = 0;
     new_tree.pop(); //remove root since it was scanned and deemed not to be the desired state
     int find_zero = 0;
+
+    
     for(i = 0; i < base.state.size(); ++i) {
         if (base.state.at(i) == 0) {
             find_zero = i;
@@ -321,6 +330,8 @@ std::priority_queue<node, std::vector<node>, T> add_children(std::priority_queue
 }
 
 int main() {
+    time_t start = time(NULL); //time when program ran
+
     int default_puzzle = 1;
     int search_alg = 0;
     std::vector<int> puzzle = {1, 2, 3, 4, 0, 6, 7, 5, 8}; //default puzzle
@@ -386,6 +397,8 @@ int main() {
     ucs_tree.top().print_puzzle(); */
 
     search_algo(basic, search_alg);
+    time_t end = time(NULL);
+    std::cout << "time elapsed: " << end - start << std::endl;
     
 }
 
