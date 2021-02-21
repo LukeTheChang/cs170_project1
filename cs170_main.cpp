@@ -330,7 +330,6 @@ std::priority_queue<node, std::vector<node>, T> add_children(std::priority_queue
 }
 
 int main() {
-    time_t start = time(NULL); //time when program ran
 
     int default_puzzle = 1;
     int search_alg = 0;
@@ -395,7 +394,7 @@ int main() {
     /*ucs_tree.top().print_puzzle();
     ucs_tree.pop();
     ucs_tree.top().print_puzzle(); */
-
+    time_t start = time(NULL); //time right before algorithm starts
     search_algo(basic, search_alg);
     time_t end = time(NULL);
     std::cout << "time elapsed: " << end - start << std::endl;
